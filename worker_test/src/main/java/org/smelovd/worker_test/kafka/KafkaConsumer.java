@@ -5,6 +5,7 @@ import org.smelovd.worker_test.repositories.NotificationRepository;
 import org.smelovd.worker_test.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.smelovd.worker_test.services.TestSenderService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -20,11 +21,14 @@ public class KafkaConsumer {
     private final NotificationRepository notificationRepository;
     private final NotificationService notificationService;
 
-    @KafkaListener(topics = "notifications", groupId = "1", batch = "true", concurrency = "4")
+    @KafkaListener(topics = "TEST", groupId = "1", batch = "true", concurrency = "4")
     public void notificationListener(List<Notification> notifications) {
         var updatedNotifications = Flux.fromIterable(notifications)
-                .doOnNext(n -> n.setStatus(notificationService.send(n)))
-                .publishOn(Schedulers.boundedElastic());
+                .publishOn(Schedulers.boundedElastic())
+                .doOnNext(n -> n.setStatus(
+                        notificationService.send(n)
+                ));
+
         notificationRepository.saveAll(updatedNotifications)
                 .subscribe();
     }

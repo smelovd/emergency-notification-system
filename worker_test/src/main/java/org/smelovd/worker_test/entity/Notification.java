@@ -1,6 +1,5 @@
 package org.smelovd.worker_test.entity;
 
-import org.smelovd.worker_test.services.senders.senders_metadata.SenderServiceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,9 +19,7 @@ public class Notification {
 
     @Id
     private String id;
-    private String fileId;
     private String serviceUserId;
-    private SenderServiceType notificationService;
     private String notificationId;
     private Timestamp timestamp;
     private NotificationStatus status;

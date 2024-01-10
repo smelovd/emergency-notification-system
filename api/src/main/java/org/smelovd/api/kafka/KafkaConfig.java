@@ -9,9 +9,19 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaConfig {
 
     @Bean
-    public NewTopic topic() {
+    public NewTopic topicTest() {
         return TopicBuilder
-                .name("notifications")
+                .name("TEST")
+                .partitions(8)
+                .replicas(1)
+                .compact()
+                .build();
+    }
+
+    @Bean
+    public NewTopic topicSms() {
+        return TopicBuilder
+                .name("SMS")
                 .partitions(8)
                 .replicas(1)
                 .compact()

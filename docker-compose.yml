@@ -55,7 +55,7 @@ services:
     links:
       - mongodb
       - kafka
-  worker:
+  worker_test:
     build:
       context: worker_test
       dockerfile: Dockerfile
@@ -68,15 +68,12 @@ services:
       - redis
       - mongodb
       - kafka
-    deploy:
-      mode: replicated
-      replicas: 2
   test-endpoint:
     build:
       context: test_endpoint
       dockerfile: Dockerfile
     container_name: "test-endpoint"
     links:
-      - worker
+      - worker_test
     ports:
       - "8081:8080"

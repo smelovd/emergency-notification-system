@@ -1,11 +1,13 @@
 package org.smelovd.api.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.smelovd.api.entity.NotificationRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
+
 import java.io.*;
 
 @RestController
@@ -15,14 +17,19 @@ public class NotificationTestController {
     private final NotificationRequestController notificationRequestController;
 
     @PostMapping("/send-test-notification")
-    public ResponseEntity<?> sendTestNotification(@RequestParam("count_user") Integer count, @RequestParam("message") String message) {
+    public NotificationRequest sendTestNotification(@RequestParam("count_user") Integer count, @RequestParam("message") String message) throws IOException, InterruptedException {
+        MultipartFile file = createFile(count);
 
+        return notificationRequestController.saveNotificationRequest(message, file);
+    }
+
+    private MultipartFile createFile(Integer count) {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 1; i <= count; i++) {
             builder.append(i).append(",").append(i).append("@test.com,").append("TEST\n");
         }
-        MultipartFile file = new MultipartFile() {
+        return  new MultipartFile() {
 
             private final byte[] input = builder.toString().getBytes();
 
@@ -70,8 +77,5 @@ public class NotificationTestController {
                 }
             }
         };
-
-
-        return notificationRequestController.saveNotificationRequest(message, file);
     }
 }
