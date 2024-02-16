@@ -1,7 +1,8 @@
 package org.smelovd.api.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.smelovd.api.entity.NotificationRequest;
+import org.smelovd.api.entities.NotificationRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,9 +18,8 @@ public class NotificationTestController {
     private final NotificationRequestController notificationRequestController;
 
     @PostMapping("/send-test-notification")
-    public NotificationRequest sendTestNotification(@RequestParam("count_user") Integer count, @RequestParam("message") String message) throws IOException, InterruptedException {
+    public Mono<ResponseEntity<NotificationRequest>> sendTestNotification(@RequestParam("count_user") Integer count, @RequestParam("message") String message) {
         MultipartFile file = createFile(count);
-
         return notificationRequestController.saveNotificationRequest(message, file);
     }
 
@@ -29,7 +29,7 @@ public class NotificationTestController {
         for (int i = 1; i <= count; i++) {
             builder.append(i).append(",").append(i).append("@test.com,").append("TEST\n");
         }
-        return  new MultipartFile() {
+        return new MultipartFile() {
 
             private final byte[] input = builder.toString().getBytes();
 
@@ -50,7 +50,7 @@ public class NotificationTestController {
 
             @Override
             public boolean isEmpty() {
-                return input == null || input.length == 0;
+                return input.length == 0;
             }
 
             @Override
@@ -59,16 +59,14 @@ public class NotificationTestController {
             }
 
             @Override
-            public byte[] getBytes() throws IOException {
+            public byte[] getBytes() {
                 return input;
             }
 
             @Override
-            public InputStream getInputStream() throws IOException {
+            public InputStream getInputStream() {
                 return new ByteArrayInputStream(input);
             }
-
-            ;
 
             @Override
             public void transferTo(File dest) throws IOException, IllegalStateException {

@@ -2,8 +2,8 @@ package org.smelovd.api.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.smelovd.api.entity.Notification;
 import org.apache.kafka.common.serialization.Serializer;
+import org.smelovd.api.entities.Notification;
 import org.springframework.stereotype.Component;
 
 @Component

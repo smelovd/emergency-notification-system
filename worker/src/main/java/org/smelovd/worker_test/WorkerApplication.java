@@ -1,13 +1,13 @@
-package org.smelovd.api;
+package org.smelovd.worker_test;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ApiApplication {
+public class WorkerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ApiApplication.class, args);
+        SpringApplication.run(WorkerApplication.class, args);
     }
 
 }

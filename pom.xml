@@ -18,7 +18,7 @@
 
     <modules>
         <module>api</module>
-        <module>worker_test</module>
+        <module>worker</module>
         <module>test_endpoint</module>
     </modules>
     
