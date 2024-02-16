@@ -10,11 +10,14 @@
         <option value="$PROJECT_DIR$/worker-test/pom.xml" />
         <option value="$PROJECT_DIR$/worker_test/pom.xml" />
         <option value="$PROJECT_DIR$/test_endpoint/pom.xml" />
+        <option value="$PROJECT_DIR$/worker/src/main/java/org/smelovd/worker_test/entities/checker/pom.xml" />
+        <option value="$PROJECT_DIR$/checker/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/api/worker-test/pom.xml" />
+        <option value="$PROJECT_DIR$/worker/src/main/java/org/smelovd/worker_test/entities/checker/pom.xml" />
       </set>
     </option>
     <option name="workspaceImportForciblyTurnedOn" value="true" />

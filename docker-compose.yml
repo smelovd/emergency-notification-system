@@ -3,7 +3,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: "zookeeper"
-    restart: always
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -14,7 +14,7 @@ services:
     container_name: "kafka"
     depends_on:
       - zookeeper
-    restart: always
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -32,13 +32,13 @@ services:
   mongodb:
     image: mongo:4.4.6
     container_name: "mongodb"
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
   redis:
     image: redis:latest
     container_name: "redis"
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
   api:
@@ -57,7 +57,7 @@ services:
       - kafka
   worker:
     build:
-      context: worker_test
+      context: worker
       dockerfile: Dockerfile
     #image: bdhb8g6ed8c/notification-worker
     depends_on:
@@ -68,15 +68,12 @@ services:
       - redis
       - mongodb
       - kafka
-    deploy:
-      mode: replicated
-      replicas: 2
   test-endpoint:
     build:
       context: test_endpoint
       dockerfile: Dockerfile
     container_name: "test-endpoint"
-    links:
-      - worker
+    #links:
+      #- worker
     ports:
       - "8081:8080"
