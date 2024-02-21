@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NotificationRequestRepository extends ReactiveMongoRepository<NotificationRequest, String> {
-
 }

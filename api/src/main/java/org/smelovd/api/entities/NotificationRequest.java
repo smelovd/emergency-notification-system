@@ -19,7 +19,7 @@ public class NotificationRequest {
     @Id
     private String id;
     private String message;
-    private Date timestamp;
-    private long notificationCount;
+    private Date createdAt;
+    private Long notificationCount;
     private NotificationRequestStatus status;
 }

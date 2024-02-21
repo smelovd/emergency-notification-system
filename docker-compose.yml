@@ -26,15 +26,39 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       # healthcheck:
       #   test: [ "CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list" ]
-      #  interval: 30s
-      #  timeout: 10s
-      #  retries: 10
+      #  interval: 10s
+      #  timeout: 15s
+      #  retries: 5
   mongodb:
     image: mongo:4.4.6
+    command: --replSet rs0
     container_name: "mongodb"
     restart: unless-stopped
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: attachment-api-local-dev
+#    healthcheck:
+#      test: echo 'db.runCommand("ping").ok'
+#      interval: 2s
+#      timeout: 3s
+#      retries: 5
+  mongo-init:
+    image: mongo:4.4.6
+    restart: no
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      mongo --host mongodb:27017 --eval
+      '
+      rs.initiate( {
+        _id : "rs0",
+        members: [
+          { _id: 0, host: "localhost:27017" }
+          ]
+      })
+      '
   redis:
     image: redis:latest
     container_name: "redis"
@@ -46,7 +70,8 @@ services:
     build:
       context: api
       dockerfile: Dockerfile
-    container_name: "api"
+    deploy:
+      replicas: 3
     depends_on:
       - mongodb
       - kafka
@@ -55,6 +80,14 @@ services:
     links:
       - mongodb
       - kafka
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
   worker:
     build:
       context: worker
