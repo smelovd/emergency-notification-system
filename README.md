@@ -22,9 +22,5 @@ Open project folder, then run
 mvn install
 ```
 ```
-docker-compose build
-```
-
-```
-docker-compose start
+docker-compose up
 ```
