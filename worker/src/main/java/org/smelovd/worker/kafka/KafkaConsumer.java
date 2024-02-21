@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.smelovd.worker.entities.Notification;
 import org.smelovd.worker.repositories.NotificationRepository;
 import org.smelovd.worker.services.CacheService;
-import org.smelovd.worker.services.TestSenderService;
+import org.smelovd.worker.services.senders.TestSenderService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -26,7 +26,7 @@ public class KafkaConsumer {
     public Flux<Notification> notificationListener(List<Notification> notifications) {
 
          var fluxNotifications = Flux.fromIterable(notifications)
-                .flatMap(notification -> testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getNotificationId()))
+                .flatMap(notification -> testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getRequestId()))
                         .map(status -> notification.toBuilder().status(status).build()))
                  .subscribeOn(Schedulers.boundedElastic());
 

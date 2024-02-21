@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Data
 @Builder
 @Document
@@ -17,5 +19,7 @@ public class NotificationRequest {
     @Id
     private String id;
     private String message;
+    private Date createdAt;
+    private Long notificationCount;
     private NotificationRequestStatus status;
 }

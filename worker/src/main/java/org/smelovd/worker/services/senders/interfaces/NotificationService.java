@@ -1,4 +1,4 @@
-package org.smelovd.worker.services;
+package org.smelovd.worker.services.senders.interfaces;
 
 import org.smelovd.worker.entities.NotificationStatus;
 import reactor.core.publisher.Mono;

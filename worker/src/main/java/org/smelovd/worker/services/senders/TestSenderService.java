@@ -1,7 +1,8 @@
-package org.smelovd.worker.services;
+package org.smelovd.worker.services.senders;
 
 import org.smelovd.worker.entities.NotificationStatus;
-import org.smelovd.worker.services.exceptions.ServiceException;
+import org.smelovd.worker.exceptions.ServiceSenderException;
+import org.smelovd.worker.services.senders.interfaces.NotificationService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -24,12 +25,12 @@ public class TestSenderService implements NotificationService {
                 .exchangeToMono(response -> Mono.just(response.statusCode()))
                 .<NotificationStatus>handle((httpStatusCode, synchronousSink) -> {
                     if (httpStatusCode.is2xxSuccessful()) synchronousSink.next(DONE);
-                    else if (httpStatusCode.is5xxServerError()) synchronousSink.error(new ServiceException("Service error", httpStatusCode));
+                    else if (httpStatusCode.is5xxServerError()) synchronousSink.error(new ServiceSenderException("Service error", httpStatusCode));
                     else if (httpStatusCode.is4xxClientError()) synchronousSink.next(CLIENT_ERROR);
                     synchronousSink.error(new Throwable());
                 })
                 .retryWhen(Retry.fixedDelay(5, Duration.ofMillis(500))
-                        .filter(throwable -> throwable instanceof ServiceException))
+                        .filter(throwable -> throwable instanceof ServiceSenderException))
                 .onErrorResume(error -> Mono.just(SERVER_ERROR));
     }
 }

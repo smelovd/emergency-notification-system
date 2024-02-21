@@ -1,4 +1,4 @@
-package org.smelovd.api;
+package org.smelovd.api.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
@@ -7,7 +7,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
 @org.springframework.context.annotation.Configuration
-public class Configuration {
+public class TransactionConfig {
 
     @Bean
     public TransactionalOperator transactionalOperator(ReactiveTransactionManager rtm) {

@@ -21,7 +21,8 @@ public class Notification {
     private String fileId;
     private String serviceUserId;
     private String notificationService;
-    private String notificationId;
-    private Date timestamp;
+    private String requestId;
+    private Date createdAt;
+    private Date lastUpdatedAt;
     private NotificationStatus status;
 }
