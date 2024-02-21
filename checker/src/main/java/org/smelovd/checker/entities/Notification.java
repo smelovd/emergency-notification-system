@@ -1,4 +1,4 @@
-package org.smelovd.worker_test.entities;
+package org.smelovd.checker.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,20 +7,21 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.sql.Timestamp;
-
+import java.util.Date;
 
 @Data
+@Builder(toBuilder = true)
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
 public class Notification {
 
     @Id
     private String id;
+    private String fileId;
     private String serviceUserId;
+    private String notificationService;
     private String notificationId;
-    private Timestamp timestamp;
+    private Date timestamp;
     private NotificationStatus status;
 }

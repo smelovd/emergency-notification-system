@@ -1,4 +1,4 @@
-package org.smelovd.worker_test.services.exceptions;
+package org.smelovd.worker.services.exceptions;
 
 import org.springframework.http.HttpStatusCode;
 

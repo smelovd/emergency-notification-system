@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
+@Builder
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Notification {
 
     @Id
@@ -22,6 +22,6 @@ public class Notification {
     private String serviceUserId;
     private String notificationService;
     private String notificationId;
-    private Timestamp timestamp;
+    private Date timestamp;
     private NotificationStatus status;
 }

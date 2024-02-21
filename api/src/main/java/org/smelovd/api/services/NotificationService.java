@@ -2,21 +2,10 @@ package org.smelovd.api.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.csv.CSVFormat;
 import org.smelovd.api.entities.Notification;
-import org.smelovd.api.entities.NotificationStatus;
 import org.smelovd.api.repositories.NotificationRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.sql.Timestamp;
 
 @Slf4j
 @Service
@@ -26,29 +15,34 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final KafkaTemplate<String, Notification> kafkaTemplate;
 
-    public Mono<Void> pushToDatabaseAndQueue(MultipartFile file, String notificationId) {
-        log.info("file parsing with notification id: " + notificationId);
-        return Mono.fromCallable(() -> {
-                    try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-                        var csvRecords = CSVFormat.RFC4180.builder()
-                                .setHeader("id", "service_user_id", "notification_service")
-                                .build().parse(reader);
-                        return Flux.fromIterable(csvRecords)
-                                .map(record ->
-                                        Notification.builder()
-                                                .fileId(record.get("id"))
-                                                .serviceUserId(record.get("service_user_id"))
-                                                .notificationService(record.get("notification_service"))
-                                                .notificationId(notificationId)
-                                                .status(NotificationStatus.CREATED)
-                                                .timestamp(new Timestamp(System.currentTimeMillis())).build());
-                    } catch (IOException e) {
-                        log.error("file parsing error with notification id: " + notificationId);
-                        throw new RuntimeException(e);
-                    }
-                })
-                .flatMapMany(notificationRepository::insert)
-                .concatMap(notification -> Mono.fromRunnable(() -> kafkaTemplate.send(notification.getNotificationService(), notification)))
-                .then();
-    }
+//    public Mono<Void> pushToDatabaseAndQueue(FilePart file, String notificationId) {
+//        log.info("File parsing with notification id: " + notificationId);
+//        return Flux.using(
+//                        () -> new BufferedReader(new InputStreamReader(file.getInputStream())),
+//                        reader -> Flux.fromStream(reader.lines()),
+//                        reader -> {
+//                            try {
+//                                reader.close();
+//                            } catch (IOException e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        })
+//                .map(string -> {
+//                    var record = string.split(",");
+//                    return Notification.builder()
+//                            .fileId(record[0])
+//                            .serviceUserId(record[1])
+//                            .notificationService(record[2])
+//                            .notificationId(notificationId)
+//                            .status(NotificationStatus.CREATED)
+//                            .timestamp(new Date()).build();
+//                })
+//                .concatMap(notificationRepository::insert)
+//                .concatMap(notification -> Mono.fromRunnable(() -> {
+//                    log.info("Notification inserted: {}", notification);
+//                    kafkaTemplate.send(notification.getNotificationService(), notification);
+//                    log.info("Notification sent to Kafka: {}", notification);
+//                }))
+//                .then();
+//    }
 }

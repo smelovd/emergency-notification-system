@@ -1,7 +1,7 @@
-package org.smelovd.worker_test;
+package org.smelovd.worker;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class WorkerTestApplicationTests {
+class WorkerApplicationTests {
 }

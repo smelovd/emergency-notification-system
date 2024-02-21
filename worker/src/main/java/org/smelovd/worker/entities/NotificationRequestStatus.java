@@ -1,4 +1,4 @@
-package org.smelovd.worker_test.entities;
+package org.smelovd.worker.entities;
 
 public enum NotificationRequestStatus {
 

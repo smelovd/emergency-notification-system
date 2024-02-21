@@ -1,4 +1,4 @@
-package org.smelovd.api.entities;
+package org.smelovd.checker.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

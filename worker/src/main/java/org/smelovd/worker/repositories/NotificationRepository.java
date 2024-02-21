@@ -1,6 +1,6 @@
-package org.smelovd.worker_test.repositories;
+package org.smelovd.worker.repositories;
 
-import org.smelovd.worker_test.entities.Notification;
+import org.smelovd.worker.entities.Notification;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 

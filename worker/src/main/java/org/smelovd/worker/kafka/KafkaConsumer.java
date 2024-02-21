@@ -1,20 +1,21 @@
-package org.smelovd.worker_test.kafka;
+package org.smelovd.worker.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.smelovd.worker_test.entities.Notification;
-import org.smelovd.worker_test.repositories.NotificationRepository;
-import org.smelovd.worker_test.services.CacheService;
-import org.smelovd.worker_test.services.TestSenderService;
+import org.smelovd.worker.entities.Notification;
+import org.smelovd.worker.repositories.NotificationRepository;
+import org.smelovd.worker.services.CacheService;
+import org.smelovd.worker.services.TestSenderService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class KafkaConsumer {
 
     private final NotificationRepository notificationRepository;
@@ -24,9 +25,10 @@ public class KafkaConsumer {
     @KafkaListener(topics = "TEST", groupId = "1", batch = "true", concurrency = "8")
     public Flux<Notification> notificationListener(List<Notification> notifications) {
 
-        var fluxNotifications = Flux.fromIterable(notifications)
+         var fluxNotifications = Flux.fromIterable(notifications)
                 .flatMap(notification -> testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getNotificationId()))
-                        .map(status -> notification.toBuilder().status(status).build()));
+                        .map(status -> notification.toBuilder().status(status).build()))
+                 .subscribeOn(Schedulers.boundedElastic());
 
         return notificationRepository.saveAll(fluxNotifications);
     }

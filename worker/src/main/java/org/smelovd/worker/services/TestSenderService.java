@@ -1,7 +1,7 @@
-package org.smelovd.worker_test.services;
+package org.smelovd.worker.services;
 
-import org.smelovd.worker_test.entities.NotificationStatus;
-import org.smelovd.worker_test.services.exceptions.ServiceException;
+import org.smelovd.worker.entities.NotificationStatus;
+import org.smelovd.worker.services.exceptions.ServiceException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,7 +10,7 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
-import static org.smelovd.worker_test.entities.NotificationStatus.*;
+import static org.smelovd.worker.entities.NotificationStatus.*;
 
 @Service
 public class TestSenderService implements NotificationService {
@@ -18,7 +18,7 @@ public class TestSenderService implements NotificationService {
     private static final String URL = "http://test-endpoint:8080/test/send";
     private final WebClient webClient = WebClient.create(URL);
 
-    public Mono<NotificationStatus> send(String serviceUserId, String message) {
+    public Mono<NotificationStatus> send(String serviceUserId, Mono<String> message) {
         return webClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchangeToMono(response -> Mono.just(response.statusCode()))
@@ -26,6 +26,7 @@ public class TestSenderService implements NotificationService {
                     if (httpStatusCode.is2xxSuccessful()) synchronousSink.next(DONE);
                     else if (httpStatusCode.is5xxServerError()) synchronousSink.error(new ServiceException("Service error", httpStatusCode));
                     else if (httpStatusCode.is4xxClientError()) synchronousSink.next(CLIENT_ERROR);
+                    synchronousSink.error(new Throwable());
                 })
                 .retryWhen(Retry.fixedDelay(5, Duration.ofMillis(500))
                         .filter(throwable -> throwable instanceof ServiceException))
