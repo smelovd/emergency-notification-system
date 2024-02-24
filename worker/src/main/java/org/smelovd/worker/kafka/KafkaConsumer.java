@@ -23,13 +23,15 @@ public class KafkaConsumer {
     private final CacheService cacheService;
 
     @KafkaListener(topics = "TEST", groupId = "1", batch = "true", concurrency = "8")
-    public Flux<Notification> notificationListener(List<Notification> notifications) {
-
-         var fluxNotifications = Flux.fromIterable(notifications)
+    public void notificationListener(List<Notification> notifications) {
+        Flux.fromIterable(notifications)
                 .flatMap(notification -> testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getRequestId()))
                         .map(status -> notification.toBuilder().status(status).build()))
-                 .subscribeOn(Schedulers.boundedElastic());
-
-        return notificationRepository.saveAll(fluxNotifications);
+                .flatMap(response -> {
+                    log.info("notification with id: " + response.getId() + " status: " + response.getStatus());
+                    return notificationRepository.save(response);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe();
     }
 }
