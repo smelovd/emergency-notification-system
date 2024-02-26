@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.api.entities.NotificationRequest;
 import org.smelovd.api.repositories.NotificationRequestRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -21,9 +22,9 @@ import static org.smelovd.api.entities.NotificationRequestStatus.CREATING;
 @RequiredArgsConstructor
 public class NotificationRequestService {
 
+    @Value("${base-file-path}")
+    private String BASE_FILE_PATH;
     private final NotificationRequestRepository notificationRequestRepository;
-
-    private static final String BASE_FILE_PATH = "";
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Mono<NotificationRequest> save(String message, Mono<FilePart> file) {

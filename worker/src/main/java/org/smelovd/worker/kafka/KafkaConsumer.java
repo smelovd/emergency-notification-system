@@ -9,7 +9,6 @@ import org.smelovd.worker.services.senders.TestSenderService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
@@ -24,14 +23,18 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "TEST", groupId = "1", batch = "true", concurrency = "8")
     public void notificationListener(List<Notification> notifications) {
+        log.info("take a new batch from TEST topic");
         Flux.fromIterable(notifications)
-                .flatMap(notification -> testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getRequestId()))
-                        .map(status -> notification.toBuilder().status(status).build()))
-                .flatMap(response -> {
-                    log.info("notification with id: " + response.getId() + " status: " + response.getStatus());
-                    return notificationRepository.save(response);
+                .flatMap(notification -> {
+                    log.info("try to send notification with id: " + notification.getId());
+                    return testSenderService.send(notification.getServiceUserId(), cacheService.getMessageByRequestId(notification.getRequestId()))
+                    .map(status -> notification.toBuilder().status(status).build());
                 })
-                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(response -> {
+            log.info("notification sent with id: " + response.getId() + " status: " + response.getStatus());
+            return notificationRepository.save(response);
+        })
+                //.subscribeOn(Schedulers.boundedElastic())
                 .subscribe();
     }
 }

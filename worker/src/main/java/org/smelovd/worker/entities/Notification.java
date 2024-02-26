@@ -19,7 +19,6 @@ public class Notification {
 
     @Id
     private String id;
-    private String fileId;
     private String serviceUserId;
     private String notificationService;
     private String requestId;

@@ -29,7 +29,7 @@ public class NotificationRequestController {
                 .flatMap(request -> {
             log.info("saved request " + request);
             return Mono.fromRunnable(() -> notificationService
-                            .produceNotifications(request.getId())
+                            .produce(request.getId())
                             .subscribeOn(Schedulers.boundedElastic())
                             .subscribe())
                     .thenReturn(new ResponseEntity<>(request, HttpStatus.OK));
