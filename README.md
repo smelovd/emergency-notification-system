@@ -8,7 +8,7 @@ How to run?
 -
 
 ```
-git clone https://github.com/smelovd/notification-system
+git clone https://github.com/smelovd/emergency-notification-system
 ```
 Open project folder, then run 
 ```
