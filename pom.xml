@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.smelovd</groupId>
-    <artifactId>notifications-system</artifactId>
+    <artifactId>emergency-notification-system</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>

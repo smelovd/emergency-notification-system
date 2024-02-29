@@ -37,7 +37,6 @@ public class SchedulerService {
                                 notificationRepository.findAllByRequestIdAndStatus(request.getId(), NotificationStatus.CLIENT_ERROR).count(),
                                 notificationRepository.findAllByRequestId(request.getId()).count()
                         )
-                        .doOnNext(System.out::println)
                         .flatMap(tuple -> {
                             long completedCount = tuple.getT1() + tuple.getT2();
                             long currentParsedCount = tuple.getT3();
@@ -45,18 +44,19 @@ public class SchedulerService {
 
                             if (areAllMessagesSent(completedCount, absoluteParseCount)) {
                                 prevCompletedCount.remove(request.getId());
+                                log.info("all messages sent, changing status to DONE, request id: " + request.getId());
                                 return notificationRequestRepository.save(request.toBuilder().status(NotificationRequestStatus.DONE).build());
                             }
 
-                            if (isServerParseFileDown(currentParsedCount, absoluteParseCount, completedCount, prevCompletedCount.getOrDefault(request.getId(), -1L))) {
+                            if (isServerParseDown(currentParsedCount, absoluteParseCount, completedCount, prevCompletedCount.getOrDefault(request.getId(), -1L))) {
                                 log.info("Server, that parsing file, is down, start async parsing file");
-                                Mono.fromRunnable(() -> recoveryService
-                                        .recoveryProduce(request, currentParsedCount).subscribe())
-                                        .subscribe();
+                                recoveryService.fileRecoveryRequestSend(request.getId(), currentParsedCount).subscribe();
                             }
                             prevCompletedCount.put(request.getId(), completedCount);
                             return Mono.just(request);
                         }))
+
+
                 .concatMap(request -> Flux.merge(
                                         notificationRepository.findAllByRequestIdAndStatus(request.getId(), NotificationStatus.SERVER_ERROR),
                                         notificationRepository.findAllByRequestIdAndStatusAndLastUpdatedAtBefore(request.getId(), NotificationStatus.CREATED, new Date(System.currentTimeMillis() - 60000L))
@@ -67,7 +67,7 @@ public class SchedulerService {
                 .subscribe();
     }
 
-    private boolean isServerParseFileDown(long currentParsedCount, long absoluteParseCount, long completedCount, Long prevCompletedCount) {
+    private boolean isServerParseDown(long currentParsedCount, long absoluteParseCount, long completedCount, Long prevCompletedCount) {
         return currentParsedCount != absoluteParseCount && completedCount == prevCompletedCount;
     }
 

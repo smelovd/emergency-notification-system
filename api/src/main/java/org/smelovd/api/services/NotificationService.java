@@ -28,6 +28,10 @@ public class NotificationService {
     private final KafkaTemplate<String, Notification> kafkaTemplate;
 
     public Mono<Void> produce(String notificationId) {
+        return produce(notificationId, 0L);
+    }
+
+    public Mono<Void> produce(String notificationId, Long currentParsedCount) {
         log.info("File parsing with notification id: " + notificationId);
         return Flux.using(
                         () -> new BufferedReader(new InputStreamReader(new FileInputStream(BASE_FILE_PATH + notificationId + ".csv"))),
@@ -39,6 +43,7 @@ public class NotificationService {
                                 throw new RuntimeException(e);
                             }
                         })
+                .skip(currentParsedCount)
                 .map(string -> {
                     var record = string.split(",");
                     return Notification.builder()
