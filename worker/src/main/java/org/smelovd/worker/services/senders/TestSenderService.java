@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.worker.entities.NotificationStatus;
 import org.smelovd.worker.exceptions.ServiceSenderException;
-import org.smelovd.worker.services.CacheService;
 import org.smelovd.worker.services.senders.interfaces.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,13 +22,13 @@ public class TestSenderService implements NotificationService {
 
     private static final String URL = "http://172.17.0.1:80/";
     private final WebClient webClient = WebClient.create(URL);
-    private final CacheService cacheService;
 
-    public Mono<NotificationStatus> send(String serviceUserId, String requestId) {
+    public Mono<NotificationStatus> send(String serviceUserId, String message) {
+        log.info(serviceUserId + " " + message);
         return webClient.post()
                 .uri(UriComponentsBuilder.fromUriString(URL + "test")
                         .queryParam("userId", serviceUserId)
-                        .queryParam("message", cacheService.getMessage(requestId))
+                        .queryParam("message", message)
                         .toUriString())
                 .exchangeToMono(response -> Mono.just(response.statusCode()))
                 .<NotificationStatus>handle((httpStatusCode, synchronousSink) -> {
