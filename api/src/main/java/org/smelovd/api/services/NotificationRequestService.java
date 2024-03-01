@@ -28,21 +28,29 @@ public class NotificationRequestService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Mono<NotificationRequest> save(String message, Mono<FilePart> file) {
+        log.info("saving notification with message \"{}\"", message);
+        return file
+                .flatMap(filePart -> insertRequestToDatabase(message)
+                .flatMap(request -> saveFile(request, filePart)));
+    }
 
-        return file.flatMap(filePart ->
-                notificationRequestRepository.insert(
-                                NotificationRequest.builder()
-                                        .message(message)
-                                        .createdAt(new Date())
-                                        .status(CREATING)
-                                        .build())
-                        .flatMap(request -> filePart.transferTo(new File(BASE_FILE_PATH + request.getId() + ".csv"))
-                                .then(Mono.fromCallable(() -> getNotificationCount(BASE_FILE_PATH + request.getId() + ".csv")))
-                                .flatMap(notificationCount -> notificationRequestRepository.save(request.toBuilder()
-                                        .status(CREATED)
-                                        .notificationCount(notificationCount)
-                                        .build()))
-                        ));
+    private Mono<NotificationRequest> insertRequestToDatabase(String message) {
+        return notificationRequestRepository.insert(
+                NotificationRequest.builder()
+                        .message(message)
+                        .createdAt(new Date())
+                        .status(CREATING)
+                        .build());
+    }
+
+    private Mono<NotificationRequest> saveFile(NotificationRequest request, FilePart filePart) {
+        return filePart.transferTo(new File(BASE_FILE_PATH + request.getId() + ".csv"))
+                .then(Mono.fromCallable(() -> getNotificationCount(BASE_FILE_PATH + request.getId() + ".csv")))
+                .flatMap(notificationCount -> notificationRequestRepository.save(
+                        request.toBuilder()
+                                .status(CREATED)
+                                .notificationCount(notificationCount)
+                                .build()));
     }
 
     private Long getNotificationCount(String filePath) {

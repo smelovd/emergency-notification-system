@@ -22,7 +22,7 @@ Example request
 
 Send post request with form data with file and message
 ```
-curl --location 'http://localhost:8080/send-notification' --form 'message="my-message"' --form 'file=@"/your/absolute/path/testFile_1000.csv"'
+curl --location 'http://localhost:80/api/send' --form 'message="my_message"' --form 'file=@"/your-absolute-path/emergency-notification-system/testFile_1000.csv"'
 ```
 File format accepted only .csv, example below, </br>
 
