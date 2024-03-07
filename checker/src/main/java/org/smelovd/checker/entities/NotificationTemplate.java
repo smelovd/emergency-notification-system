@@ -10,16 +10,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationRequestHistory {
+public class NotificationTemplate {
 
     @Id
     private String id;
-    private String requestId;
+    private String message;
     private Date createdAt;
-    private Date completedAt;
-    private String status;
+    private Long notificationCount;
+    private boolean isParsed;
+
 }

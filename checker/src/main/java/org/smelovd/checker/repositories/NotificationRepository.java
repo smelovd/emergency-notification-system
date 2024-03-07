@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface NotificationRepository extends ReactiveMongoRepository<Notification, String> {
-    Flux<Notification> findAllByRequestId(String requestId);
+    Flux<Notification> findAllByTemplateId(String templateId);
 
-    Mono<Long> countAllByRequestId(String requestId);
+    Mono<Long> countAllByTemplateId(String templateId);
 }

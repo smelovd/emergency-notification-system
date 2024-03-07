@@ -2,13 +2,9 @@ package org.smelovd.checker.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.smelovd.checker.entities.NotificationRequestHistory;
-import org.smelovd.checker.repositories.NotificationRequestHistoryRepository;
 import org.smelovd.checker.repositories.NotificationRequestRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.util.stream.Collectors;
 
 /**
  * Possible problems:
@@ -29,22 +25,18 @@ import java.util.stream.Collectors;
 public class SchedulerService {
 
     private final RecoveryService recoveryService;
-    private final NotificationRequestHistoryRepository notificationRequestHistoryRepository;
-    private final NotificationRequestService notificationRequestService;
     private final NotificationRequestRepository notificationRequestRepository;
+    private final NotificationRequestService notificationRequestService;
 
     @Scheduled(fixedDelay = 60000)
     public void recovery() {
         log.info("Start checking for problem");
-        notificationRequestHistoryRepository.findAllByStatus("CREATED")
-                .buffer(100)
-                .concatMap(historyRequest -> notificationRequestRepository.findAllById(historyRequest.stream()
-                        .map(NotificationRequestHistory::getRequestId).collect(Collectors.toSet())))
+        notificationRequestRepository.findAllByStatus("CREATED")
                 .concatMap(notificationRequestService::updateAlreadySentStatus)
 
                 .concatMap(recoveryService::fixServerDown)
-                .concatMap(recoveryService::produceServerErrorNotifications)
 
+                .concatMap(recoveryService::produceServerErrorNotifications)
                 .subscribe();
     }
 }

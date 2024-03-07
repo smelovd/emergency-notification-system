@@ -1,15 +1,15 @@
 package org.smelovd.checker.services.exceptions;
 
 import lombok.Getter;
-import org.smelovd.checker.entities.NotificationRequest;
+import org.smelovd.checker.entities.NotificationTemplate;
 
 @Getter
 public class ServerFileParserDownException extends Throwable {
-    private final NotificationRequest request;
+    private final NotificationTemplate template;
 
-    public ServerFileParserDownException(NotificationRequest request) {
+    public ServerFileParserDownException(NotificationTemplate template) {
         super();
-        this.request = request;
+        this.template = template;
     }
 
 }
