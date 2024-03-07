@@ -1,4 +1,4 @@
-package org.smelovd.worker.entities;
+package org.smelovd.checker.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,17 +10,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
 @Data
-@Builder(toBuilder = true)
+@Builder
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationRequest {
+public class NotificationRequestHistory {
 
     @Id
     private String id;
-    private String message;
+    private String requestId;
     private Date createdAt;
-    private Long notificationCount;
-    private boolean isParsed;
-
+    private Date completedAt;
+    private String status;
 }

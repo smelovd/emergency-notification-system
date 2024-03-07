@@ -26,7 +26,7 @@ curl --location 'http://localhost:80/api/send' --form 'message="my_message"' --f
 ```
 File format accepted only .csv, example below, </br>
 
-Headers no need, Sender Service now avaliable only `TEST` (you can take test file in project testFile_*.csv)
+Headers no need, Sender Service now available only `TEST` (you can take test file in project testFile_*.csv)
 
 | User Service Id | Sender Service |
 | -------------   | -------------  |

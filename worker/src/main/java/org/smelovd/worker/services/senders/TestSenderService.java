@@ -2,9 +2,8 @@ package org.smelovd.worker.services.senders;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.smelovd.worker.entities.NotificationStatus;
 import org.smelovd.worker.exceptions.ServiceSenderException;
-import org.smelovd.worker.services.senders.interfaces.NotificationService;
+import org.smelovd.worker.services.senders.interfaces.NotificationServiceInterface;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -13,37 +12,33 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
-import static org.smelovd.worker.entities.NotificationStatus.*;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TestSenderService implements NotificationService {
+public class TestSenderService implements NotificationServiceInterface {
 
     private static final String URL = "http://172.17.0.1:80/";
     private final WebClient webClient = WebClient.create(URL);
 
-    public Mono<NotificationStatus> send(String serviceUserId, String message) {
-        log.info(serviceUserId + " " + message);
+    public Mono<String> send(String serviceUserId, String message) {
         return webClient.post()
                 .uri(UriComponentsBuilder.fromUriString(URL + "test")
                         .queryParam("userId", serviceUserId)
                         .queryParam("message", message)
                         .toUriString())
                 .exchangeToMono(response -> Mono.just(response.statusCode()))
-                .<NotificationStatus>handle((httpStatusCode, synchronousSink) -> {
+                .<String>handle((httpStatusCode, synchronousSink) -> {
                     if (httpStatusCode.is2xxSuccessful()) {
-                        synchronousSink.next(DONE);
+                        synchronousSink.next("0");
                     } else if (httpStatusCode.is4xxClientError()) {
-                        synchronousSink.next(CLIENT_ERROR);
+                        synchronousSink.next("1");
                     } else if (httpStatusCode.is5xxServerError()) {
                         synchronousSink.error(new ServiceSenderException("Service error", httpStatusCode));
                     } else {
-                        log.error("unknown exception");
+                        log.error("Unknown error: " + httpStatusCode);
                     }
                 })
-                .retryWhen(Retry.fixedDelay(5, Duration.ofMillis(5000))
-                        .filter(throwable -> throwable instanceof ServiceSenderException))
-                .onErrorResume(error -> Mono.just(SERVER_ERROR));
+                .retryWhen(Retry.fixedDelay(5, Duration.ofMillis(5000)))
+                .onErrorResume(error -> Mono.just("2"));
     }
 }

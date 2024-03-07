@@ -14,9 +14,6 @@ import reactor.core.publisher.Mono;
 import java.io.*;
 import java.util.Date;
 
-import static org.smelovd.api.entities.NotificationRequestStatus.CREATED;
-import static org.smelovd.api.entities.NotificationRequestStatus.CREATING;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,8 +26,7 @@ public class NotificationRequestService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Mono<NotificationRequest> save(String message, Mono<FilePart> file) {
         log.info("saving notification with message \"{}\"", message);
-        return file
-                .flatMap(filePart -> insertRequestToDatabase(message)
+        return file.flatMap(filePart -> insertRequestToDatabase(message)
                 .flatMap(request -> saveFile(request, filePart)));
     }
 
@@ -39,22 +35,23 @@ public class NotificationRequestService {
                 NotificationRequest.builder()
                         .message(message)
                         .createdAt(new Date())
-                        .status(CREATING)
+                        .isParsed(false)
                         .build());
     }
 
     private Mono<NotificationRequest> saveFile(NotificationRequest request, FilePart filePart) {
         return filePart.transferTo(new File(BASE_FILE_PATH + request.getId() + ".csv"))
-                .then(Mono.fromCallable(() -> getNotificationCount(BASE_FILE_PATH + request.getId() + ".csv")))
-                .flatMap(notificationCount -> notificationRequestRepository.save(
-                        request.toBuilder()
-                                .status(CREATED)
-                                .notificationCount(notificationCount)
-                                .build()));
+                .then(Mono.defer(() -> this.updateCountById(request.getId(), getNotificationCount(request.getId()))));
     }
 
-    private Long getNotificationCount(String filePath) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)))) {
+    private Mono<NotificationRequest> updateCountById(String id, Long notificationCount) {
+        return notificationRequestRepository.findById(id)
+                .flatMap(request -> Mono.just(request.toBuilder().notificationCount(notificationCount).build()))
+                .flatMap(notificationRequestRepository::save);
+    }
+
+    private Long getNotificationCount(String id) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream( BASE_FILE_PATH + id + ".csv")))) {
             return reader.lines().count();
         } catch (FileNotFoundException e) {
             log.error("file not found " + e.getMessage());
@@ -63,5 +60,11 @@ public class NotificationRequestService {
             log.error("file close/open error " + e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    public Mono<Void> updateIsParsed(String requestId, boolean isParsed) {
+        return notificationRequestRepository.findById(requestId)
+                .flatMap(request -> Mono.just(request.toBuilder().isParsed(isParsed).build()))
+                .flatMap(notificationRequestRepository::save).then();
     }
 }

@@ -21,5 +21,6 @@ public class NotificationRequest {
     private String message;
     private Date createdAt;
     private Long notificationCount;
-    private NotificationRequestStatus status;
+    private boolean isParsed;
+
 }

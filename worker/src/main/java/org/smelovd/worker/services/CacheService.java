@@ -2,9 +2,8 @@ package org.smelovd.worker.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.smelovd.worker.entities.NotificationRequest;
-import org.smelovd.worker.repositories.NotificationRequestRepository;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.smelovd.worker.entities.Notification;
+import org.smelovd.worker.repositories.cache.NotificationCacheRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -13,16 +12,17 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CacheService {
 
-    private final NotificationRequestRepository notificationRequestRepository;
-    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final NotificationCacheRepository notificationCacheRepository;
 
-    public Mono<String> getMessageFromCache(String requestId) {
-        return redisTemplate.opsForValue().get(requestId)
-                .switchIfEmpty(notificationRequestRepository.findById(requestId)
-                        .map(NotificationRequest::getMessage)
-                        .flatMap(message -> redisTemplate.opsForValue().set(requestId, message)
-                                .thenReturn(message)));
+    public Mono<Notification> validateAlreadySentMessages(Notification notification) {
+        return notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())
+                .<Notification>handle((status, synchronousSink) -> {
+                    if (status.equals("2")) {
+                        synchronousSink.next(notification);
+                    } else {
+                        synchronousSink.error(new RuntimeException());
+                    }
+                })
+                .switchIfEmpty(Mono.just(notification));
     }
-
-
 }

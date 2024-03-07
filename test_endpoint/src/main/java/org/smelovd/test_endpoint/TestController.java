@@ -20,8 +20,8 @@ public class TestController {
 
     @PostMapping("/test")
     public Mono<ResponseEntity<String>> send(@RequestParam("userId") String userId, @RequestParam("message") String message) {
-        if (random.nextInt() % 3 == 1) return Mono.just(new ResponseEntity<>("something with server", HttpStatus.INTERNAL_SERVER_ERROR));
-        log.info(requestAcceptedCount.incrementAndGet() + " " + userId);
+        if (random.nextInt() % 4 == 1) return Mono.just(new ResponseEntity<>("something with server", HttpStatus.INTERNAL_SERVER_ERROR));
+        log.info(requestAcceptedCount.incrementAndGet() + " " + userId + " " + message);
         return Mono.just(new ResponseEntity<>("ok", HttpStatus.OK));
     }
 }

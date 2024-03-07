@@ -13,23 +13,27 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/send")
 @RequiredArgsConstructor
 public class NotificationRequestController {
 
     private final NotificationRequestService notificationRequestService;
     private final NotificationService notificationService;
 
-    @PostMapping("/send")
-    public Mono<ResponseEntity<NotificationRequest>> saveAndProduceNotificationRequest(@RequestPart("message") String message, @RequestPart("file") Mono<FilePart> file) {
+    @PostMapping("")
+    public Mono<ResponseEntity<NotificationRequest>> parseAndProduce(@RequestPart("message") String message, @RequestPart("file") Mono<FilePart> file) {
         return notificationRequestService.save(message, file)
-                .flatMap(request -> notificationService.asyncProduce(request)
-                .thenReturn(new ResponseEntity<>(request, HttpStatus.OK)));
+                .flatMap(request -> {
+                    log.info("Send recovery notification with id: {}", request.getId());
+                    return notificationService.asyncParseAndProduce(request.getId())
+                            .thenReturn(new ResponseEntity<>(request, HttpStatus.OK));
+                });
     }
 
-    @PostMapping(value = "/send/recovery")
-    public Mono<ResponseEntity<String>> recoveryProduceNotificationRequest(@RequestParam("requestId") String requestId, @RequestParam("currentParsedCount") String currentParsedCount) {
-        return notificationService.recoveryAsyncProduce(requestId, currentParsedCount)
+    @PostMapping("/{requestId}")
+    public Mono<ResponseEntity<String>> produce(@PathVariable("requestId") String requestId) {
+        log.info("Send recovery notification with id: {}", requestId);
+        return notificationService.asyncProduce(requestId)
                 .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
     }
 }
