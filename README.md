@@ -6,7 +6,7 @@ How to run?
 -
 
 ```
-mvn install
+mvn install -DskipTests
 ```
 ```
 docker-compose up -d --build
@@ -28,7 +28,7 @@ Headers no need, Sender Service now available only `TEST` (you can take test fil
 | +380666666666   | SMS            |
 
 
-How it work?
+How it works?
 -
 ![image](explain-architecture.png)
 
