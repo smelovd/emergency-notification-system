@@ -3,11 +3,12 @@ package org.smelovd.api.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.smelovd.api.factories.NotificationRequestFactory;
 
-class NotificationRequestServiceTest {
+class NotificationTemplateFactoryTest {
 
     @InjectMocks
-    private NotificationRequestService notificationRequestService;
+    private NotificationRequestFactory notificationRequestFactory;
 
 
     @BeforeEach

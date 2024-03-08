@@ -14,12 +14,13 @@ import java.util.Date;
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationRequest {
+public class NotificationTemplate {
 
     @Id
     private String id;
-    private String templateId;
+    private String message;
     private Date createdAt;
-    private Date completedAt;
-    private String status;
+    private Long notificationCount;
+    private boolean isParsed;
+
 }

@@ -18,5 +18,5 @@ public class Notification {
     private String id;
     private String serviceUserId;
     private String sender;
-    private String requestId;
+    private String templateId;
 }

@@ -1,9 +1,9 @@
-package org.smelovd.api.services;
+package org.smelovd.api.factories;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.smelovd.api.entities.NotificationRequest;
-import org.smelovd.api.repositories.NotificationRequestRepository;
+import org.smelovd.api.entities.NotificationTemplate;
+import org.smelovd.api.repositories.NotificationTemplateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -17,37 +17,37 @@ import java.util.Date;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationRequestService {
+public class NotificationTemplateFactory {
 
     @Value("${base-file-path}")
     private String BASE_FILE_PATH;
-    private final NotificationRequestRepository notificationRequestRepository;
+    private final NotificationTemplateRepository notificationTemplateRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Mono<NotificationRequest> save(String message, Mono<FilePart> file) {
+    public Mono<NotificationTemplate> create(String message, Mono<FilePart> file) {
         log.info("saving notification with message \"{}\"", message);
-        return file.flatMap(filePart -> insertRequestToDatabase(message)
-                .flatMap(request -> saveFile(request, filePart)));
+        return file.flatMap(filePart -> insert(message)
+                .flatMap(template -> saveFile(template, filePart)));
     }
 
-    private Mono<NotificationRequest> insertRequestToDatabase(String message) {
-        return notificationRequestRepository.insert(
-                NotificationRequest.builder()
+    private Mono<NotificationTemplate> insert(String message) {
+        return notificationTemplateRepository.insert(
+                NotificationTemplate.builder()
                         .message(message)
                         .createdAt(new Date())
                         .isParsed(false)
                         .build());
     }
 
-    private Mono<NotificationRequest> saveFile(NotificationRequest request, FilePart filePart) {
-        return filePart.transferTo(new File(BASE_FILE_PATH + request.getId() + ".csv"))
-                .then(Mono.defer(() -> this.updateCountById(request.getId(), getNotificationCount(request.getId()))));
+    private Mono<NotificationTemplate> saveFile(NotificationTemplate template, FilePart filePart) {
+        return filePart.transferTo(new File(BASE_FILE_PATH + template.getId() + ".csv"))
+                .then(Mono.defer(() -> this.updateCountById(template.getId(), getNotificationCount(template.getId()))));
     }
 
-    private Mono<NotificationRequest> updateCountById(String id, Long notificationCount) {
-        return notificationRequestRepository.findById(id)
+    private Mono<NotificationTemplate> updateCountById(String id, Long notificationCount) {
+        return notificationTemplateRepository.findById(id)
                 .flatMap(request -> Mono.just(request.toBuilder().notificationCount(notificationCount).build()))
-                .flatMap(notificationRequestRepository::save);
+                .flatMap(notificationTemplateRepository::save);
     }
 
     private Long getNotificationCount(String id) {
@@ -60,11 +60,5 @@ public class NotificationRequestService {
             log.error("file close/open error " + e.getMessage());
             throw new RuntimeException(e);
         }
-    }
-
-    public Mono<Void> updateIsParsed(String requestId, boolean isParsed) {
-        return notificationRequestRepository.findById(requestId)
-                .flatMap(request -> Mono.just(request.toBuilder().isParsed(isParsed).build()))
-                .flatMap(notificationRequestRepository::save).then();
     }
 }

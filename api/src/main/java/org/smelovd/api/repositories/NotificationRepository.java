@@ -7,5 +7,5 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface NotificationRepository extends ReactiveMongoRepository<Notification, String> {
-    Flux<Notification> findAllByRequestId(String requestId);
+    Flux<Notification> findAllByTemplateId(String templateId);
 }
