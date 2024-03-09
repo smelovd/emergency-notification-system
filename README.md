@@ -6,7 +6,7 @@ How to run?
 -
 
 ```
-mvn install
+mvn install -DskipTests
 ```
 ```
 docker-compose up -d --build
