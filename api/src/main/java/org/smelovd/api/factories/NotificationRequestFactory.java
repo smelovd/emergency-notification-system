@@ -26,8 +26,8 @@ public class NotificationRequestFactory {
                 .flatMap(notificationTemplateRepository::save).then();
     }
 
-    public Mono<NotificationRequest> create(String templateId, String message) {
-        return notificationRequestRepository.save(NotificationRequest.builder()
+    public Mono<NotificationRequest> create(String templateId, String message) { //TODO message changing in template
+        return notificationRequestRepository.insert(NotificationRequest.builder()
                 .createdAt(new Date())
                 .status("CREATED")
                 .templateId(templateId)

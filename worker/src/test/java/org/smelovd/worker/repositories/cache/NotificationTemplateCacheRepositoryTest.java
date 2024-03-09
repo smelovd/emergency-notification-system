@@ -4,8 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.smelovd.worker.entities.NotificationRequest;
-import org.smelovd.worker.repositories.NotificationRequestRepository;
+import org.smelovd.worker.entities.NotificationTemplate;
+import org.smelovd.worker.repositories.MessageRepository;
+import org.smelovd.worker.repositories.NotificationTemplateRepository;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.data.redis.core.ReactiveHashOperations;
@@ -18,14 +19,14 @@ import static org.mockito.Mockito.when;
 
 @DataRedisTest
 @AutoConfigureWebTestClient
-class NotificationRequestCacheRepositoryTest {
+class NotificationTemplateCacheRepositoryTest {
 
     @InjectMocks
-    private NotificationRequestCacheRepository notificationRequestCacheRepository;
+    private MessageRepository messageRepository;
     @Mock
     private ReactiveRedisTemplate<String, String> redisTemplate;
     @Mock
-    private NotificationRequestRepository notificationRequestRepository;
+    private NotificationTemplateRepository notificationTemplateRepository;
 
     @BeforeEach
     void setUp() {
@@ -35,15 +36,15 @@ class NotificationRequestCacheRepositoryTest {
 
     @Test
     void getMessage_shouldReturnMessageFromCache() {
-        NotificationRequest dbRequest = NotificationRequest.builder().message("my-message-from-db").build();
+        NotificationTemplate dbRequest = NotificationTemplate.builder().message("my-message-from-db").build();
         String requestId = "1";
 
         when(redisTemplate.opsForHash().get("request:message", requestId)).thenReturn(Mono.just("my-message-from-cache"));
-        when(notificationRequestRepository.findById(requestId)).thenReturn(Mono.just(dbRequest));
+        when(notificationTemplateRepository.findById(requestId)).thenReturn(Mono.just(dbRequest));
         when(redisTemplate.opsForHash().put("request:message", requestId, "my-message-from-db")).thenReturn(Mono.just(true));
 
 
-        StepVerifier.create(notificationRequestCacheRepository.getMessage(requestId))
+        StepVerifier.create(messageRepository.getMessageByTemplateId(requestId))
                 .expectNext("my-message-from-db")
                 .verifyComplete();
 
@@ -51,15 +52,15 @@ class NotificationRequestCacheRepositoryTest {
 
     @Test
     void getMessage_shouldReturnMessageFromDbAndSaveInCache() {
-        NotificationRequest dbRequest = NotificationRequest.builder().message("my-message-from-db").build();
+        NotificationTemplate dbRequest = NotificationTemplate.builder().message("my-message-from-db").build();
         String requestId = "1";
 
         when(redisTemplate.opsForHash().get("request:message", requestId)).thenReturn(Mono.empty());
-        when(notificationRequestRepository.findById(requestId)).thenReturn(Mono.just(dbRequest));
+        when(notificationTemplateRepository.findById(requestId)).thenReturn(Mono.just(dbRequest));
         when(redisTemplate.opsForHash().put("request:message", requestId, "my-message-from-db")).thenReturn(Mono.just(true));
 
 
-        StepVerifier.create(notificationRequestCacheRepository.getMessage(requestId))
+        StepVerifier.create(messageRepository.getMessageByTemplateId(requestId))
                 .expectNext("my-message-from-db")
                 .verifyComplete();
     }

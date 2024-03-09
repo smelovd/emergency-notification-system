@@ -24,7 +24,8 @@ public class RecoveryProduceService {
     private final NotificationRequestRepository notificationRequestRepository;
 
     public Mono<Void> asyncParseAndProduce(String requestId, String currentParsedCount) {
-        return Mono.fromRunnable(() -> produceService.produceFromFile(requestId, Long.valueOf(currentParsedCount)).subscribe());
+        return Mono.fromRunnable(() -> notificationRequestRepository.findById(requestId)
+                .flatMap(request -> produceService.produceFromFile(request, Long.valueOf(currentParsedCount))).subscribe());
     }
 
     public Mono<Void> asyncProduce(String requestId) {
@@ -33,6 +34,7 @@ public class RecoveryProduceService {
                         .flatMap(template -> notificationRepository.findAllByTemplateId(template.getId()).collectList()
                                 .map(allNotification -> allNotification.stream().filter(n -> !producedNotifications.contains(n.getId())).collect(Collectors.toList()))
                                 .flatMapIterable(notProducedNotifications -> notProducedNotifications)
+                                .map(notification -> notification.toBuilder().requestId(requestId).build())
                                 .doOnNext(produceService::pushToQueue).then()))
                 .subscribe());
     }

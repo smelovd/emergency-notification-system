@@ -22,4 +22,5 @@ public class NotificationRequest {
     private Date createdAt;
     private Date completedAt;
     private String status;
+
 }

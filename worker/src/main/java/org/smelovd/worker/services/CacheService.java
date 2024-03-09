@@ -3,7 +3,7 @@ package org.smelovd.worker.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.worker.entities.Notification;
-import org.smelovd.worker.repositories.cache.NotificationCacheRepository;
+import org.smelovd.worker.repositories.NotificationIdAndStatusRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -12,10 +12,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CacheService {
 
-    private final NotificationCacheRepository notificationCacheRepository;
+    private final NotificationIdAndStatusRepository notificationIdAndStatusRepository;
 
     public Mono<Notification> validateAlreadySentMessages(Notification notification) {
-        return notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())
+        return notificationIdAndStatusRepository.getStatus(notification.getRequestId(), notification.getId())
                 .<Notification>handle((status, synchronousSink) -> {
                     if (status.equals("2")) {
                         synchronousSink.next(notification);

@@ -139,7 +139,7 @@ services:
   nginx:
     image: nginx:latest
     volumes:
-      - ./test-endpoint-nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - test-endpoint
       - api

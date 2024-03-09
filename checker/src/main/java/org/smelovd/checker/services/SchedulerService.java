@@ -2,9 +2,11 @@ package org.smelovd.checker.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.smelovd.checker.entities.Notification;
 import org.smelovd.checker.repositories.NotificationRequestRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 /**
  * Possible problems:
@@ -29,14 +31,17 @@ public class SchedulerService {
     private final NotificationRequestService notificationRequestService;
 
     @Scheduled(fixedDelay = 60000)
-    public void recovery() {
+    public void recoveryStarter() {
+        recovery().subscribe();
+    }
+
+    public Flux<Notification> recovery() {
         log.info("Start checking for problem");
-        notificationRequestRepository.findAllByStatus("CREATED")
+        return notificationRequestRepository.findAllByStatus("CREATED")
                 .concatMap(notificationRequestService::updateAlreadySentStatus)
 
                 .concatMap(recoveryService::fixServerDown)
 
-                .concatMap(recoveryService::produceServerErrorNotifications)
-                .subscribe();
+                .concatMap(recoveryService::produceServerErrorNotifications);
     }
 }

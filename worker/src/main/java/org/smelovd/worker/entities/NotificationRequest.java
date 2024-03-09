@@ -18,9 +18,9 @@ public class NotificationRequest {
 
     @Id
     private String id;
-    private String message;
+    private String templateId;
     private Date createdAt;
-    private Long notificationCount;
-    private boolean isParsed;
+    private Date completedAt;
+    private String status;
 
 }

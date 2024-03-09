@@ -29,7 +29,7 @@ File format accepted only .csv, example below, </br>
 Headers no need, Sender Service now available only `TEST` (you can take test file in project testFile_*.csv)
 
 | User Service Id | Sender Service |
-| -------------   | -------------  |
+|-----------------|----------------|
 | email@gmail.com | EMAIL          |
 | +380666666666   | SMS            |
 
@@ -42,3 +42,5 @@ How it work?
 Database Schema
 -
 ![image](schema.png)
+
+Cache s

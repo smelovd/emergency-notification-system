@@ -1,14 +1,16 @@
 package org.smelovd.checker.services;
 
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 @NoArgsConstructor
-public class ApiService {
+public class WebClientService {
 
     private final String URL = "http://172.17.0.1:80/";
     private final WebClient webClient = WebClient.create();
@@ -22,7 +24,7 @@ public class ApiService {
                         .toUriString())
                 .retrieve()
                 .bodyToMono(String.class)
-                .retry(5)
+                .doOnNext(log::info)
                 .then();
     }
 }

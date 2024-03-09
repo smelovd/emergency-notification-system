@@ -23,7 +23,8 @@ public class NotificationRequestController {
     private final ProduceService produceService;
 
     @PostMapping("")
-    public Mono<ResponseEntity<NotificationRequest>> parseAndProduce(@RequestPart("message") String message, @RequestPart("file") Mono<FilePart> file) {
+    public Mono<ResponseEntity<NotificationRequest>> parseAndProduce(@RequestPart("message") String message,
+                                                                     @RequestPart("file") Mono<FilePart> file) {
         return notificationTemplateFactory.create(message, file)
                 .flatMap(template -> {
                     log.info("Created template with id: {}", template.getId());
@@ -31,7 +32,7 @@ public class NotificationRequestController {
                 })
                 .flatMap(request -> {
                     log.info("Sending request with id: {}", request.getId());
-                    return produceService.asyncParseAndProduce(request.getId())
+                    return produceService.asyncParseAndProduce(request)
                             .thenReturn(new ResponseEntity<>(request, HttpStatus.OK));
                 });
     }

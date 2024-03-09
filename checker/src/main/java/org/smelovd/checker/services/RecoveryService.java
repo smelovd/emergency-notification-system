@@ -23,7 +23,7 @@ public class RecoveryService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationCacheRepository notificationCacheRepository;
-    private final ApiService apiService;
+    private final WebClientService webClientService;
     private final KafkaTemplate<String, Notification> kafkaTemplate;
     private final NotificationTemplateRepository notificationTemplateRepository;
     protected final Map<String, Long> prevCompletedCount = new HashMap<>();
@@ -37,24 +37,29 @@ public class RecoveryService {
             long completedCount = tuple.getT1();
             long currentParsedCount = tuple.getT2();
             NotificationTemplate template = tuple.getT3();
+            log.info("completed count: {}, current parsed count: {}, request id: {}", completedCount, currentParsedCount, request.getId());
 
             if (isServerDown(request.getId(), completedCount)) {
                 log.info("Server parsing file is down, initiating async recovery");
-                return apiService.sendRecovery(request.getId(), template.isParsed(), currentParsedCount)
+                log.info("request id: {}, is parsed: {}, parsed count: {}",request.getId(), template.isParsed(), currentParsedCount);
+                return webClientService.sendRecovery(request.getId(), template.isParsed(), currentParsedCount)
                         .thenReturn(request);
             }
-
             prevCompletedCount.put(request.getId(), completedCount);
             return Mono.just(request);
         });
     }
 
     public Flux<Notification> produceServerErrorNotifications(NotificationRequest request) {
-        return notificationCacheRepository.findAllByTemplateIdAndStatus(request.getTemplateId(), "2")
+        return notificationCacheRepository.findAllByRequestIdAndStatus(request.getId(), "2")
                 .doOnNext(notification -> {
                     log.info("Push notification with id: {}, to queue", notification.getId());
-                    kafkaTemplate.send(notification.getSender(), notification);
+                    kafkaTemplate.send(notification.getSender(), notification.toBuilder().requestId(request.getId()).build());
                 });
+    }
+
+    public void clearPrevCompletedCount(String requestId) {
+        prevCompletedCount.remove(requestId);
     }
 
     private boolean isServerDown(String requestId, long completedCount) {

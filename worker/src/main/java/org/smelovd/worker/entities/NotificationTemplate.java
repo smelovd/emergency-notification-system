@@ -1,4 +1,4 @@
-package org.smelovd.checker.entities;
+package org.smelovd.worker.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,18 +7,20 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Data
 @Builder(toBuilder = true)
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class NotificationTemplate {
 
     @Id
     private String id;
-    private String serviceUserId;
-    private String sender;
-    private String templateId;
-    private String requestId;
+    private String message;
+    private Date createdAt;
+    private Long notificationCount;
+    private boolean isParsed;
 
 }

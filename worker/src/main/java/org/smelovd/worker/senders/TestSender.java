@@ -1,9 +1,9 @@
-package org.smelovd.worker.services.senders;
+package org.smelovd.worker.senders;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.worker.exceptions.ServiceSenderException;
-import org.smelovd.worker.services.senders.interfaces.NotificationServiceInterface;
+import org.smelovd.worker.senders.interfaces.SenderInterface;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,7 +15,7 @@ import java.time.Duration;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TestSenderService implements NotificationServiceInterface {
+public class TestSender implements SenderInterface {
 
     private static final String URL = "http://172.17.0.1:80/";
     private final WebClient webClient = WebClient.create(URL);

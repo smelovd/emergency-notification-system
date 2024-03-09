@@ -19,8 +19,8 @@ public class RecoveryController {
     @PostMapping("/{requestId}")
     public Mono<ResponseEntity<String>> recoveryProduceRequest(
             @PathVariable("requestId") String requestId,
-            @RequestParam(value = "isParsed", required = false, defaultValue = "false") boolean isParsed,
-            @RequestParam(value = "currentParsedCount", required = false, defaultValue = "0") String currentParsedCount) {
+            @RequestParam("isParsed") boolean isParsed,
+            @RequestParam("currentParsedCount") String currentParsedCount) {
         log.info("Send recovery notification with id: {}", requestId);
         if (isParsed) {
             return recoveryProduceService.asyncProduce(requestId)

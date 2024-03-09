@@ -1,15 +1,15 @@
-package org.smelovd.worker.repositories.cache;
+package org.smelovd.worker.repositories;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@Repository
+@Service
 @RequiredArgsConstructor
-public class NotificationCacheRepository {
+public class NotificationIdAndStatusRepository {
 
     private final ReactiveRedisTemplate<String, String> redisTemplate;
 

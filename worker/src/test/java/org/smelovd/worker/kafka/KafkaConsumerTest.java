@@ -3,7 +3,7 @@ package org.smelovd.worker.kafka;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.smelovd.worker.repositories.NotificationRequestRepository;
+import org.smelovd.worker.repositories.NotificationTemplateRepository;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 class KafkaConsumerTest {
@@ -14,7 +14,7 @@ class KafkaConsumerTest {
     @Mock
     private ReactiveRedisTemplate<String, String> redisTemplate;
     @Mock
-    private NotificationRequestRepository notificationRequestRepository;
+    private NotificationTemplateRepository notificationTemplateRepository;
 
     @BeforeEach
     void setUp() {

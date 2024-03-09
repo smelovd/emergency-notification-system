@@ -3,7 +3,6 @@ package org.smelovd.checker.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.checker.entities.NotificationRequest;
-import org.smelovd.checker.entities.NotificationTemplate;
 import org.smelovd.checker.repositories.NotificationRequestRepository;
 import org.smelovd.checker.repositories.NotificationTemplateRepository;
 import org.smelovd.checker.repositories.cache.NotificationCacheRepository;
@@ -22,25 +21,20 @@ public class NotificationRequestService {
     private final NotificationCacheRepository notificationCacheRepository;
     private final NotificationRequestRepository notificationRequestRepository;
 
-    public Mono<NotificationTemplate> updateIsParsed(String templateId, boolean isParsed) {
-        return notificationTemplateRepository.findById(templateId)
-                .flatMap(template -> Mono.just(template.toBuilder().isParsed(isParsed).build()))
-                .flatMap(notificationTemplateRepository::save);
-    }
-
     public Mono<NotificationRequest> updateAlreadySentStatus(NotificationRequest request) {
         return Mono.zip(
                         notificationCacheRepository.findAllCompletedKeys(request.getId()).count(),
-                        notificationTemplateRepository.findById(request.getId())
-                )
+                        notificationTemplateRepository.findById(request.getTemplateId()))
                 .flatMap(tuple -> {
                     long completedCount = tuple.getT1();
                     long absoluteCount = tuple.getT2().getNotificationCount();
+                    log.info("completed count: {}, absolute count: {}, request id: {}", completedCount, absoluteCount, request.getId());
 
                     if (areAllNotificationsSent(completedCount, absoluteCount)) {
-                        log.info("All messages sent, completing notification request with id: {}", request.getId()); //TODO saving
+                        log.info("All messages sent, completing notification request with id: {}", request.getId());
                         return this.completeRequest(request);
                     }
+
                     return Mono.just(request);
                 })
                 .filter(request1 -> request1.getStatus().equals("CREATED"));
@@ -51,13 +45,9 @@ public class NotificationRequestService {
     }
 
     private Mono<NotificationRequest> completeRequest(NotificationRequest request) {
-        return this.updateStatus(request, "DONE")
-                .doOnNext(isOk -> recoveryService.prevCompletedCount.remove(request.getId()))
-                .flatMap(savedRequest -> notificationCacheRepository.cleanStatuses(request.getId()))
+        return notificationRequestRepository.save(request.toBuilder().completedAt(new Date()).status("DONE").build())
+                .doOnNext(isOk -> recoveryService.clearPrevCompletedCount(request.getId()))
+                .flatMap(savedRequest -> notificationCacheRepository.removeUnusedStatuses(request.getId()))
                 .thenReturn(request);
-    }
-
-    private Mono<NotificationRequest> updateStatus(NotificationRequest request, String status) {
-        return notificationRequestRepository.save(request.toBuilder().completedAt(new Date()).status(status).build());
     }
 }

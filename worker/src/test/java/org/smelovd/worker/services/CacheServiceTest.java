@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.smelovd.worker.entities.Notification;
-import org.smelovd.worker.repositories.cache.NotificationCacheRepository;
+import org.smelovd.worker.repositories.NotificationIdAndStatusRepository;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.data.redis.core.ReactiveHashOperations;
@@ -25,7 +25,7 @@ class CacheServiceTest {
     @Mock
     private ReactiveRedisTemplate<String, String> redisTemplate;
     @Mock
-    private NotificationCacheRepository notificationCacheRepository;
+    private NotificationIdAndStatusRepository notificationIdAndStatusRepository;
 
     @BeforeEach
     void setUp() {
@@ -35,9 +35,9 @@ class CacheServiceTest {
 
     @Test
     void validateAlreadySentMessages_shouldReturnNotificationThatNotFoundInCache() {
-        Notification notification = Notification.builder().id("1").requestId("1").build();
+        Notification notification = Notification.builder().id("1").templateId("2").requestId("3").build();
 
-        when(notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.empty());
+        when(notificationIdAndStatusRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.empty());
 
         StepVerifier.create(cacheService.validateAlreadySentMessages(notification))
                 .expectNext(notification)
@@ -46,9 +46,9 @@ class CacheServiceTest {
 
     @Test
     void validateAlreadySentMessages_shouldReturnMonoErrorBecauseNotificationStatusIsDone() {
-        Notification notification = Notification.builder().id("1").requestId("1").build();
+        Notification notification = Notification.builder().id("1").templateId("2").requestId("3").build();
 
-        when(notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("0"));
+        when(notificationIdAndStatusRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("0"));
 
         StepVerifier.create(cacheService.validateAlreadySentMessages(notification))
                 .expectError()
@@ -57,9 +57,9 @@ class CacheServiceTest {
 
     @Test
     void validateAlreadySentMessages_shouldReturnMonoErrorBecauseNotificationStatusIsClientError() {
-        Notification notification = Notification.builder().id("1").requestId("1").build();
+        Notification notification = Notification.builder().id("1").templateId("2").requestId("3").build();
 
-        when(notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("1"));
+        when(notificationIdAndStatusRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("1"));
 
         StepVerifier.create(cacheService.validateAlreadySentMessages(notification))
                 .expectError()
@@ -68,9 +68,9 @@ class CacheServiceTest {
 
     @Test
     void validateAlreadySentMessages_shouldReturnNotificationWithStatusServerError() {
-        Notification notification = Notification.builder().id("1").requestId("1").build();
+        Notification notification = Notification.builder().id("1").templateId("2").requestId("3").build();
 
-        when(notificationCacheRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("2"));
+        when(notificationIdAndStatusRepository.getStatus(notification.getRequestId(), notification.getId())).thenReturn(Mono.just("2"));
 
         StepVerifier.create(cacheService.validateAlreadySentMessages(notification))
                 .expectNext(notification)

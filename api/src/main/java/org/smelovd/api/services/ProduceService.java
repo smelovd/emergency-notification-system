@@ -3,6 +3,7 @@ package org.smelovd.api.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.api.entities.Notification;
+import org.smelovd.api.entities.NotificationRequest;
 import org.smelovd.api.factories.NotificationRequestFactory;
 import org.smelovd.api.repositories.NotificationRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,29 +28,31 @@ public class ProduceService {
     private final NotificationRepository notificationRepository;
     private final NotificationRequestFactory notificationRequestFactory;
 
-    public Mono<Void> asyncParseAndProduce(String requestId) {
-        return Mono.fromRunnable(() -> this.produceFromFile(requestId, 0L).subscribe());
+    public Mono<Void> asyncParseAndProduce(NotificationRequest request) {
+        return Mono.fromRunnable(() -> this.produceFromFile(request, 0L).subscribe());
     }
 
     public Mono<Void> asyncProduce(String templateId, String message) {
         log.info("Send notification with id: {}", templateId);
         return notificationRequestFactory.create(templateId, message)
                 .flatMap(request -> notificationRepository.findAllByTemplateId(templateId)
+                        .map(notification -> notification.toBuilder().requestId(request.getId()).build())
                         .doOnNext(this::pushToQueue).then());
     }
 
-    public Mono<Void> produceFromFile(String requestId, Long currentParsedLine) {
-        log.info("File parsing with request id: " + requestId);
-        return readFileLines(requestId)
+    public Mono<Void> produceFromFile(NotificationRequest request, Long currentParsedLine) {
+        log.info("File parsing with request id: " + request.getId());
+        return readFileLines(request.getTemplateId())
                 .skip(currentParsedLine)
-                .map(line -> mapLineToNotification(line, requestId))
+                .map(line -> mapLineToNotification(line, request.getTemplateId()))
                 .buffer(500)
                 .concatMap(notifications -> {
                     log.info("inserting buffer");
                     return notificationRepository.insert(notifications);
                 })
+                .map(notification -> notification.toBuilder().requestId(request.getId()).build())
                 .doOnNext(this::pushToQueue)
-                .then(notificationRequestFactory.updateIsParsed(requestId, true));
+                .then(notificationRequestFactory.updateIsParsed(request.getTemplateId(), true));
     }
 
     private Flux<String> readFileLines(String requestId) {
@@ -65,13 +68,13 @@ public class ProduceService {
                 });
     }
 
-    private Notification mapLineToNotification(String line, String requestId) {
+    private Notification mapLineToNotification(String line, String templateId) {
         var records = line.split(",");
 
         return Notification.builder()
                 .serviceUserId(records[0])
                 .sender(records[1])
-                .templateId(requestId)
+                .templateId(templateId)
                 .build();
     }
 
