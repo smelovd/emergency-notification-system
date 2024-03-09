@@ -2,15 +2,9 @@ Emergency Notification System
 -
 ![image](architecture.png)
 
-Guaranteed message delivery with scalability
-
 How to run?
 -
 
-```
-git clone https://github.com/smelovd/emergency-notification-system
-```
-Open project folder, then run 
 ```
 mvn install
 ```
@@ -22,7 +16,7 @@ Example request
 
 Send post request with form data with file and message
 ```
-curl --location 'http://localhost:80/api/send' --form 'message="my_message"' --form 'file=@"/your-absolute-path/emergency-notification-system/testFile_1000.csv"'
+curl --location 'http://localhost:80/api/send' --form 'message="your_message"' --form 'file=@"/your-absolute-path/emergency-notification-system/testFile_1000.csv"'
 ```
 File format accepted only .csv, example below, </br>
 
@@ -38,9 +32,15 @@ How it work?
 -
 ![image](explain-architecture.png)
 
-
-Database Schema
+Mongo Scheme
 -
-![image](schema.png)
+![image](database-scheme.png)
 
-Cache s
+Redis Scheme
+-
+<img src='hash-status-storage.png' width='400'>
+
+Notification's Status code explain
+-
+<img src='status.png' width='100'>
+
