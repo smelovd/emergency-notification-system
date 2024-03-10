@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smelovd.api.entities.NotificationRequest;
 import org.smelovd.api.factories.NotificationRequestFactory;
-import org.smelovd.api.factories.NotificationTemplateFactory;
 import org.smelovd.api.services.ProduceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,17 +18,12 @@ import reactor.core.publisher.Mono;
 public class NotificationRequestController {
 
     private final NotificationRequestFactory notificationRequestFactory;
-    private final NotificationTemplateFactory notificationTemplateFactory;
     private final ProduceService produceService;
 
     @PostMapping("")
     public Mono<ResponseEntity<NotificationRequest>> parseAndProduce(@RequestPart("message") String message,
                                                                      @RequestPart("file") Mono<FilePart> file) {
-        return notificationTemplateFactory.create(message, file)
-                .flatMap(template -> {
-                    log.info("Created template with id: {}", template.getId());
-                    return notificationRequestFactory.create(template.getId(), message);
-                })
+        return notificationRequestFactory.create(message, file)
                 .flatMap(request -> {
                     log.info("Sending request with id: {}", request.getId());
                     return produceService.asyncParseAndProduce(request)
@@ -38,9 +32,12 @@ public class NotificationRequestController {
     }
 
     @PostMapping("/{templateId}")
-    public Mono<ResponseEntity<String>> produce(@PathVariable("templateId") String templateId, @RequestParam(value = "message", required = false) String message) {
-        log.info("Send request with id: {}", templateId);
-        return produceService.asyncProduce(templateId, message)
-                .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
+    public Mono<ResponseEntity<NotificationRequest>> produce(@PathVariable("templateId") String templateId) { //TODO , @RequestParam(value = "message", required = false) String message
+        return notificationRequestFactory.create(templateId)
+                .flatMap(request -> {
+                    log.info("Send request with id: {}", request.getId());
+                    return produceService.asyncProduce(request)
+                            .thenReturn(new ResponseEntity<>(request, HttpStatus.OK));
+                });
     }
 }

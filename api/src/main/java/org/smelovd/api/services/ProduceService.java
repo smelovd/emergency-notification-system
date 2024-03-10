@@ -32,12 +32,11 @@ public class ProduceService {
         return Mono.fromRunnable(() -> this.produceFromFile(request, 0L).subscribe());
     }
 
-    public Mono<Void> asyncProduce(String templateId, String message) {
-        log.info("Send notification with id: {}", templateId);
-        return notificationRequestFactory.create(templateId, message)
-                .flatMap(request -> notificationRepository.findAllByTemplateId(templateId)
+    public Mono<Void> asyncProduce(NotificationRequest request) {
+        log.info("Send notification with id: {}", request.getTemplateId());
+        return notificationRepository.findAllByTemplateId(request.getTemplateId())
                         .map(notification -> notification.toBuilder().requestId(request.getId()).build())
-                        .doOnNext(this::pushToQueue).then());
+                        .doOnNext(this::pushToQueue).then();
     }
 
     public Mono<Void> produceFromFile(NotificationRequest request, Long currentParsedLine) {
