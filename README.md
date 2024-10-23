@@ -1,6 +1,6 @@
 Emergency Notification System
 -
-![image](architecture.png)
+![image](images/architecture.png)
 
 How to run?
 -
@@ -30,17 +30,17 @@ Headers no need, Sender Service now available only `TEST` (you can take test fil
 
 How it works?
 -
-![image](explain-architecture.png)
+![image](images/explain-architecture.png)
 
 Mongo Scheme
 -
-![image](database-scheme.png)
+![image](images/database-scheme.png)
 
 Redis Scheme
 -
-<img src='hash-status-storage.png' width='400'>
+<img src='images/hash-status-storage.png' width='400'>
 
 Notification's Status code explain
 -
-<img src='status.png' width='100'>
+<img src='images/status.png' width='100'>
 
